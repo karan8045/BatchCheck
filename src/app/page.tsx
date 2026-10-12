@@ -13,6 +13,7 @@ import { createSpeechController } from "@/lib/speech";
 import { use3DCapabilities } from "@/lib/use-capabilities";
 import { DynamicHeroScene, DynamicResultScene, DynamicAboutScene } from "@/components/3d/Dynamic3D";
 import { Static2DFallback } from "@/components/3d/Static2DFallback";
+import { CameraViewfinder } from "@/components/CameraViewfinder";
 import {
   Camera,
   Keyboard,
@@ -28,6 +29,8 @@ import {
   Info,
   RefreshCw,
   FileCheck2,
+  Pill,
+  BookmarkCheck,
 } from "lucide-react";
 
 type Screen = "home" | "confirm" | "result" | "about";
@@ -49,7 +52,14 @@ export default function BatchCheckApp() {
   const [batchNumber, setBatchNumber] = useState("");
   const [expiryRaw, setExpiryRaw] = useState("");
 
-  // Loading & Error States
+  // Worldwide Pharmacopeia Insights State
+  const [activeIngredients, setActiveIngredients] = useState("");
+  const [drugCategory, setDrugCategory] = useState("");
+  const [packagingType, setPackagingType] = useState("");
+  const [usageSummary, setUsageSummary] = useState("");
+
+  // Loading, Camera & Error States
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
   const [scanNotice, setScanNotice] = useState<string | null>(null);
@@ -69,7 +79,7 @@ export default function BatchCheckApp() {
   const [speechError, setSpeechError] = useState<string | null>(null);
   const speechRef = useRef(createSpeechController());
 
-  // File Input Ref
+  // File Input Ref for gallery upload fallback
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 1. Initialize Locale from localStorage
@@ -154,7 +164,7 @@ export default function BatchCheckApp() {
     const started = speechRef.current.speak(textToSpeak, locale, {
       onStart: () => setIsSpeaking(true),
       onEnd: () => setIsSpeaking(false),
-      onError: (msg) => {
+      onError: () => {
         setIsSpeaking(false);
         setSpeechError(t.result.voiceUnavailable);
       },
@@ -165,19 +175,17 @@ export default function BatchCheckApp() {
     }
   };
 
-  // 4. Handle Camera / Photo Scan
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  // Shared OCR & Medicine Analysis Pipeline
+  const processMedicineImage = async (blob: Blob) => {
     try {
       setIsScanning(true);
       setScanNotice(null);
 
       // Client-side canvas compression (max 1280px, quality 0.8)
+      const file = new File([blob], "medicine_scan.jpg", { type: "image/jpeg" });
       const compressedBlob = await compressImage(file);
       const formData = new FormData();
-      formData.append("image", compressedBlob, "strip.jpg");
+      formData.append("image", compressedBlob, "medicine_scan.jpg");
 
       const response = await fetch("/api/extract", {
         method: "POST",
@@ -190,11 +198,17 @@ export default function BatchCheckApp() {
         setScanNotice(t.confirm.manualFallbackNotice);
       }
 
-      // Populate whatever was extracted (or empty)
+      // Populate extracted OCR values
       setDrugName(data.drug_name || "");
       setManufacturer(data.manufacturer || "");
       setBatchNumber(data.batch_number || "");
       setExpiryRaw(data.expiry_raw || "");
+
+      // Populate Worldwide Pharmacopeia Insights
+      setActiveIngredients(data.active_ingredients || "");
+      setDrugCategory(data.drug_category || "");
+      setPackagingType(data.packaging_type || "");
+      setUsageSummary(data.usage_summary || "");
 
       // Transition to Confirm screen
       setScreen("confirm");
@@ -205,6 +219,10 @@ export default function BatchCheckApp() {
       setManufacturer("");
       setBatchNumber("");
       setExpiryRaw("");
+      setActiveIngredients("");
+      setDrugCategory("");
+      setPackagingType("");
+      setUsageSummary("");
       setScreen("confirm");
     } finally {
       setIsScanning(false);
@@ -212,6 +230,19 @@ export default function BatchCheckApp() {
         fileInputRef.current.value = "";
       }
     }
+  };
+
+  // Live Camera Capture Handler
+  const handleCameraCapture = (blob: Blob) => {
+    setIsCameraOpen(false);
+    processMedicineImage(blob);
+  };
+
+  // File Picker Fallback Handler
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    processMedicineImage(file);
   };
 
   // 5. Handle "Try a sample" (Demo)
@@ -229,6 +260,12 @@ export default function BatchCheckApp() {
     setManufacturer(sample.manufacturer);
     setBatchNumber(sample.batch_number);
     setExpiryRaw(sample.expiry_raw);
+
+    // Seeded demo pharmacopeia identification
+    setActiveIngredients("Pantoprazole Sodium IP 40mg");
+    setDrugCategory("Proton Pump Inhibitor (Antacid / Anti-ulcer)");
+    setPackagingType("Alu-Alu Blister Strip");
+    setUsageSummary("Reduces stomach acid production; indicated for gastroesophageal reflux disease (GERD) and peptic ulcers.");
 
     try {
       const res = await fetch("/api/check", {
@@ -328,6 +365,10 @@ export default function BatchCheckApp() {
     setManufacturer("");
     setBatchNumber("");
     setExpiryRaw("");
+    setActiveIngredients("");
+    setDrugCategory("");
+    setPackagingType("");
+    setUsageSummary("");
     setScreen("confirm");
   };
 
@@ -351,15 +392,23 @@ export default function BatchCheckApp() {
 
   return (
     <div className="min-h-screen flex flex-col justify-between max-w-md mx-auto w-full px-4 py-3 sm:py-6 relative">
-      {/* Hidden File Input for Strip Camera */}
+      {/* Hidden File Input for fallback gallery upload */}
       <input
         ref={fileInputRef}
         type="file"
         accept="image/*"
-        capture="environment"
         onChange={handleFileChange}
         className="hidden"
-        aria-label="Upload medicine strip photo"
+        aria-label="Upload medicine photo from gallery"
+      />
+
+      {/* Live Camera Viewfinder Modal */}
+      <CameraViewfinder
+        isOpen={isCameraOpen}
+        onClose={() => setIsCameraOpen(false)}
+        onCapture={handleCameraCapture}
+        onSelectFileFallback={() => fileInputRef.current?.click()}
+        locale={locale}
       />
 
       {/* TOP HEADER */}
@@ -427,9 +476,9 @@ export default function BatchCheckApp() {
 
           {/* Action Buttons */}
           <div className="space-y-3 mt-auto pt-4">
-            {/* BIG SCAN BUTTON */}
+            {/* BIG SCAN BUTTON (Opens Camera Permission & Viewfinder) */}
             <button
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => setIsCameraOpen(true)}
               disabled={isScanning}
               className="tap-target w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold text-lg flex items-center justify-center gap-3 shadow-xl shadow-sky-900/40 tilt-button transition disabled:opacity-50"
             >
@@ -471,8 +520,8 @@ export default function BatchCheckApp() {
       {/* ======================================================== */}
       {screen === "confirm" && (
         <main className="flex-1 flex flex-col justify-between animate-fadeIn">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
               <button
                 onClick={handleBackHome}
                 className="p-1 rounded-lg hover:bg-navy-800 text-slate-400 hover:text-white transition"
@@ -483,26 +532,62 @@ export default function BatchCheckApp() {
               <h2 className="text-xl font-bold text-white">{t.confirm.title}</h2>
             </div>
 
-            <p className="text-xs text-slate-300 mb-3 bg-navy-900/80 p-2.5 rounded-lg border border-navy-800">
+            <p className="text-xs text-slate-300 bg-navy-900/80 p-2.5 rounded-lg border border-navy-800">
               {t.confirm.subtitle}
             </p>
 
             {scanNotice && (
-              <div className="mb-3 p-3 rounded-lg bg-amber-950/40 border border-amber-800/70 text-amber-200 text-xs flex items-start gap-2">
+              <div className="p-3 rounded-lg bg-amber-950/40 border border-amber-800/70 text-amber-200 text-xs flex items-start gap-2">
                 <Info className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
                 <span>{scanNotice}</span>
               </div>
             )}
 
             {confirmError && (
-              <div className="mb-3 p-3 rounded-lg bg-red-950/50 border border-red-800 text-red-200 text-xs flex items-start gap-2">
+              <div className="p-3 rounded-lg bg-red-950/50 border border-red-800 text-red-200 text-xs flex items-start gap-2">
                 <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
                 <span>{confirmError}</span>
               </div>
             )}
 
+            {/* WORLDWIDE PHARMACOPEIA IDENTIFICATION CARD */}
+            {(activeIngredients || drugCategory || packagingType || usageSummary) && (
+              <div className="p-3.5 rounded-xl bg-gradient-to-br from-navy-900 via-navy-850 to-indigo-950/40 border border-sky-500/30 text-xs space-y-2 shadow-sm">
+                <div className="flex items-center gap-1.5 font-bold text-sky-300 text-[11px] uppercase tracking-wider">
+                  <BookmarkCheck className="w-4 h-4 text-sky-400" />
+                  <span>{t.confirm.insightsHeader}</span>
+                </div>
+
+                {activeIngredients && (
+                  <div>
+                    <span className="text-slate-400 font-medium">{t.confirm.ingredientsLabel}: </span>
+                    <span className="text-white font-semibold">{activeIngredients}</span>
+                  </div>
+                )}
+
+                <div className="flex flex-wrap gap-1.5 pt-0.5 text-[11px]">
+                  {drugCategory && (
+                    <span className="px-2.5 py-0.5 rounded-md bg-sky-950 text-sky-200 border border-sky-800/80 font-medium">
+                      {drugCategory}
+                    </span>
+                  )}
+                  {packagingType && (
+                    <span className="px-2.5 py-0.5 rounded-md bg-indigo-950 text-indigo-200 border border-indigo-800/80 font-medium">
+                      {packagingType}
+                    </span>
+                  )}
+                </div>
+
+                {usageSummary && (
+                  <p className="text-slate-300 text-[11px] leading-relaxed pt-1 border-t border-white/10 italic">
+                    "{usageSummary}"
+                  </p>
+                )}
+              </div>
+            )}
+
             {/* Editable Form */}
-            <form onSubmit={handleCheckBatch} className="space-y-3.5">
+            <form onSubmit={handleCheckBatch} className="space-y-3">
               {/* Batch Number (Required) */}
               <div>
                 <label className="block text-xs font-semibold text-slate-200 uppercase tracking-wider mb-1">
@@ -584,10 +669,10 @@ export default function BatchCheckApp() {
 
           <div className="pt-4 text-center">
             <button
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => setIsCameraOpen(true)}
               className="text-xs text-sky-400 hover:text-sky-300 underline font-medium p-2"
             >
-              Re-scan strip photo
+              Re-scan with camera
             </button>
           </div>
         </main>
@@ -698,6 +783,26 @@ export default function BatchCheckApp() {
                 {resultTextObj.cardText}
               </div>
 
+              {/* WORLDWIDE PHARMACOPEIA IDENTIFICATION SUMMARY */}
+              {(activeIngredients || drugCategory || usageSummary) && (
+                <div className="mt-3 p-3 rounded-lg bg-black/30 border border-white/10 text-xs space-y-1.5">
+                  <div className="flex items-center gap-1.5 text-sky-300 font-bold text-[11px] uppercase tracking-wider">
+                    <Pill className="w-3.5 h-3.5" />
+                    <span>{t.result.pharmacopeiaHeader}</span>
+                  </div>
+                  {activeIngredients && (
+                    <p className="text-white font-medium">
+                      <span className="text-slate-400">{t.confirm.ingredientsLabel}:</span> {activeIngredients}
+                    </p>
+                  )}
+                  {drugCategory && (
+                    <p className="text-slate-300">
+                      <span className="text-slate-400">{t.confirm.categoryLabel}:</span> {drugCategory}
+                    </p>
+                  )}
+                </div>
+              )}
+
               {/* Matched Record Details (If Flagged) */}
               {resultStatus === "flagged" && matchedRows.length > 0 && (
                 <div className="mt-4 pt-3 border-t border-white/15 space-y-2">
@@ -759,7 +864,7 @@ export default function BatchCheckApp() {
           {/* Action Buttons */}
           <div className="space-y-2.5 pt-4">
             <button
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => setIsCameraOpen(true)}
               className="tap-target w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold text-base flex items-center justify-center gap-2 shadow-lg shadow-sky-900/40 tilt-button transition"
             >
               <Camera className="w-5 h-5" />
@@ -911,4 +1016,3 @@ export default function BatchCheckApp() {
     </div>
   );
 }
-

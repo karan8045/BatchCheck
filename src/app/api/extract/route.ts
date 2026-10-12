@@ -32,6 +32,10 @@ export async function POST(req: NextRequest) {
           batch_number: null,
           expiry_raw: null,
           confidence: "low",
+          active_ingredients: null,
+          drug_category: null,
+          packaging_type: null,
+          usage_summary: null,
         },
         { status: 200 }
       );
@@ -48,6 +52,10 @@ export async function POST(req: NextRequest) {
           batch_number: null,
           expiry_raw: null,
           confidence: "low",
+          active_ingredients: null,
+          drug_category: null,
+          packaging_type: null,
+          usage_summary: null,
         },
         { status: 200 }
       );
@@ -63,6 +71,10 @@ export async function POST(req: NextRequest) {
           batch_number: null,
           expiry_raw: null,
           confidence: "low",
+          active_ingredients: null,
+          drug_category: null,
+          packaging_type: null,
+          usage_summary: null,
         },
         { status: 200 }
       );
@@ -78,6 +90,10 @@ export async function POST(req: NextRequest) {
           batch_number: null,
           expiry_raw: null,
           confidence: "low",
+          active_ingredients: null,
+          drug_category: null,
+          packaging_type: null,
+          usage_summary: null,
         },
         { status: 200 }
       );
@@ -93,6 +109,10 @@ export async function POST(req: NextRequest) {
           batch_number: null,
           expiry_raw: null,
           confidence: "low",
+          active_ingredients: null,
+          drug_category: null,
+          packaging_type: null,
+          usage_summary: null,
         },
         { status: 200 }
       );
@@ -109,6 +129,10 @@ export async function POST(req: NextRequest) {
           batch_number: null,
           expiry_raw: null,
           confidence: "low",
+          active_ingredients: null,
+          drug_category: null,
+          packaging_type: null,
+          usage_summary: null,
         },
         { status: 200 }
       );
@@ -121,21 +145,29 @@ export async function POST(req: NextRequest) {
     const modelName = process.env.GEMINI_MODEL || "gemini-3.8-flash";
     const ai = new GoogleGenAI({ apiKey });
 
-    const promptText = `You are a precision pharmaceutical OCR specialist.
-Your objective is to read printed and embossed text on a medicine strip or pharmaceutical pack.
+    const promptText = `You are a worldwide pharmaceutical expert and precision vision OCR system with exhaustive knowledge of global pharmacopeias (Indian Pharmacopoeia IP, British Pharmacopoeia BP, United States Pharmacopeia USP, European Pharmacopoeia, WHO Essential Medicines List, and global branded formulations).
 
-Inspect the photo carefully and extract the following 4 fields:
-1. drug_name: Brand or generic name (e.g., "Altopan 40", "Curocef 100mg", "Paracetamol 500mg").
-2. manufacturer: Name of the manufacturer or marketing pharmaceutical company.
-3. batch_number: The batch/lot number. Look for indicators such as "B.No.", "Batch", "Batch No.", "Lot", "Lot No.". Extract ONLY the alphanumeric batch string without the label prefix.
+Inspect the photograph of the medicine container (strip, syrup bottle, suspension, blister pack, vial, ointment, or box).
+
+Extract the following OCR details with maximum precision:
+1. drug_name: Brand name or official generic formulation name (e.g., "Altopan 40", "Ascoril-D Plus Syrup", "Augmentin 625 Duo", "Curocef 100mg/5ml Suspension", "Benadryl Cough Formula").
+2. manufacturer: Name of the pharmaceutical company, laboratory, or marketing entity.
+3. batch_number: The specific batch/lot number printed or embossed. Look for indicators such as "B.No.", "Batch", "Batch No.", "Lot", "Lot No.". Extract ONLY the alphanumeric batch string without the label prefix.
 4. expiry_raw: The expiration date exactly as printed (e.g., "08/2026", "MAR 2026", "08.26", "10/2025"). Look for labels like "EXP", "EXPIRY", "USE BEFORE".
 5. confidence: "high" if batch and drug name are distinct and unambiguous; "medium" if faintly stamped or partially readable; "low" if uncertain or missing.
 
+WORLDWIDE PHARMACEUTICAL IDENTIFICATION:
+Using your comprehensive global pharmacology knowledge base, examine the medicine and identify:
+6. active_ingredients: The chemical salt(s), active generic composition, and strengths (e.g., "Dextromethorphan Hydrobromide 10mg + Chlorpheniramine Maleate 2mg + Phenylephrine HCl 5mg per 5ml", "Paracetamol IP 500mg", "Pantoprazole Sodium 40mg").
+7. drug_category: Broad therapeutic class (e.g., "Cough & Cold Expectorant / Antihistamine Syrup", "Antipyretic / Analgesic", "Proton Pump Inhibitor (Antacid)", "Antibacterial / Penicillin-class Antibiotic").
+8. packaging_type: Form factor detected: "Syrup Bottle / Liquid Suspension", "Blister Strip / Foil Pack", "Vial / Injection", "Dry Syrup / Reconstitutable Oral Suspension", "Topical Tube / Ointment", or "Tablet Box".
+9. usage_summary: Objective standard 1-sentence medical reference describing what this generic formulation is indicated for (e.g., "Relieves dry cough, allergic rhinitis, and nasal congestion" or "Reduces fever and provides relief for mild-to-moderate pain").
+
 STRICT ACCURACY RULES:
-- Copy characters EXACTLY as printed.
-- NEVER guess, invent, or autocomplete missing characters.
-- If unsure of any field, or if it is not visible in the image, return null for that field.
-- Ignore MRP, manufacturing dates, licenses, barcodes, dosages, and marketing slogans.`;
+- Copy batch numbers and dates EXACTLY as printed.
+- NEVER guess, invent, or complete missing characters in the batch number.
+- If unsure of the batch number, set it to null so the user can verify.
+- Return null for any field that cannot be identified.`;
 
     const response = await ai.models.generateContent({
       model: modelName,
@@ -158,6 +190,10 @@ STRICT ACCURACY RULES:
             batch_number: { type: Type.STRING, nullable: true },
             expiry_raw: { type: Type.STRING, nullable: true },
             confidence: { type: Type.STRING, enum: ["low", "medium", "high"] },
+            active_ingredients: { type: Type.STRING, nullable: true },
+            drug_category: { type: Type.STRING, nullable: true },
+            packaging_type: { type: Type.STRING, nullable: true },
+            usage_summary: { type: Type.STRING, nullable: true },
           },
           required: ["confidence"],
         },
@@ -174,6 +210,10 @@ STRICT ACCURACY RULES:
           batch_number: null,
           expiry_raw: null,
           confidence: "low",
+          active_ingredients: null,
+          drug_category: null,
+          packaging_type: null,
+          usage_summary: null,
         },
         { status: 200 }
       );
@@ -187,6 +227,10 @@ STRICT ACCURACY RULES:
       batch_number: parsed.batch_number ?? null,
       expiry_raw: parsed.expiry_raw ?? null,
       confidence: parsed.confidence || "medium",
+      active_ingredients: parsed.active_ingredients ?? null,
+      drug_category: parsed.drug_category ?? null,
+      packaging_type: parsed.packaging_type ?? null,
+      usage_summary: parsed.usage_summary ?? null,
     });
   } catch (err: any) {
     console.error("POST /api/extract error:", err);
@@ -199,9 +243,12 @@ STRICT ACCURACY RULES:
         batch_number: null,
         expiry_raw: null,
         confidence: "low",
+        active_ingredients: null,
+        drug_category: null,
+        packaging_type: null,
+        usage_summary: null,
       },
       { status: 200 }
     );
   }
 }
-
