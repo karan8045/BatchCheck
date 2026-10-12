@@ -51,3 +51,9 @@ language sql stable as $$
   limit 5;
 $$;
 
+-- Grant access to service_role
+grant all on table data_sources to service_role;
+grant all on table flagged_batches to service_role;
+grant execute on function check_batch to service_role;
+
+
