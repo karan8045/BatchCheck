@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-bg-base: #060913;
+  --color-bg-surface: #0b1120;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  background-color: var(--color-bg-base);
+  color: #f8fafc;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Subtle background radial depth */
+body {
+  background-image: radial-gradient(circle at 50% 15%, #172544 0%, #0b1120 55%, #060913 100%);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+/* 3D button & card perspective enhancement */
+.perspective-card {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+}
+
+.tilt-button {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tilt-button:hover {
+  transform: translateY(-2px) scale(1.01);
+}
+
+.tilt-button:active {
+  transform: translateY(1px) scale(0.99);
+}
+
+/* Minimum touch target accessibility standard */
+.tap-target {
+  min-height: 48px;
+  min-width: 48px;
+}
+

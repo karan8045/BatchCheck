@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b1120"/>
+      <stop offset="100%" stop-color="#1e2942"/>
+    </linearGradient>
+    <linearGradient id="foil" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#6366f1"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <rect x="116" y="116" width="280" height="280" rx="48" fill="none" stroke="url(#foil)" stroke-width="20"/>
+  <!-- Blister pills pattern -->
+  <circle cx="196" cy="196" r="32" fill="#38bdf8" fill-opacity="0.9"/>
+  <circle cx="316" cy="196" r="32" fill="#38bdf8" fill-opacity="0.9"/>
+  <circle cx="196" cy="316" r="32" fill="#818cf8" fill-opacity="0.9"/>
+  <circle cx="316" cy="316" r="32" fill="#818cf8" fill-opacity="0.9"/>
+  <!-- Scan line beam -->
+  <line x1="126" y1="256" x2="386" y2="256" stroke="#f43f5e" stroke-width="12" stroke-linecap="round"/>
+</svg>
+
