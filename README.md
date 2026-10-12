@@ -20,14 +20,16 @@ The result is rendered as a large color-coded status card and read aloud in **Hi
 ## 📱 Features & Screens
 
 1. **Home Screen**:
-   - One-tap camera scanner (`accept="image/*" capture="environment"`).
+   - **Live Camera Viewfinder**: Tap "Scan Medicine" to prompt browser camera permissions and open an interactive viewfinder with alignment framing brackets, flash/torch toggle, camera switcher, and shutter button.
+   - Fallback gallery/files upload option for desktop and devices without cameras.
    - "Type details manually" fallback link.
    - "Try a sample (Demo)" button that runs an instant live check against seeded fictional demo data.
    - English / हिन्दी language toggle (persisted in `localStorage`).
    - 3D interactive floating blister foil pack that tilts with touch and sweeps a scanning light bar during OCR.
 2. **Confirm Screen**:
-   - Clean 2D form displaying extracted fields: Drug Name, Manufacturer, Batch Number, and Expiry Date.
-   - All fields are user-editable to verify against the physical blister strip.
+   - **Worldwide Pharmacopeia Identification**: Identifies the generic active salts, composition strengths, therapeutic class, container type, and clinical indications (across Indian Pharmacopoeia IP, British BP, United States USP, and WHO Essential Medicines).
+   - Clean form displaying extracted fields: Drug Name, Manufacturer, Batch Number, and Expiry Date.
+   - All fields are user-editable to verify against the physical blister strip or syrup bottle.
    - Automatic fallback to this screen if image extraction fails or API is unreachable.
 3. **Result Screen**:
    - 3D status reaction:
@@ -35,6 +37,7 @@ The result is rendered as a large color-coded status card and read aloud in **Hi
      - 🟠 **EXPIRED**: Blister strip turns amber, dims, and displays a rotating clock indicator.
      - ⚪ **NO MATCH**: Blister strip turns neutral grey/blue with a calm idle float (Zero green, zero checkmarks, zero shields).
    - Large color-coded card with alert reason, alert category (NSQ, Spurious, Adulterated, Misbranded), and source publication details.
+   - Displays recognized chemical composition and therapeutic category.
    - Audible speech readout in `hi-IN` or `en-IN` with toggle and graceful fallbacks.
    - Prominent `DEMO DATA` badge when testing fictional demo records.
 4. **About & Data Screen**:
