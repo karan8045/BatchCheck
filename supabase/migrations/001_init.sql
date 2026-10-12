@@ -1,6 +1,6 @@
 create extension if not exists pg_trgm;
 
-create table data_sources (
+create table if not exists data_sources (
   id uuid primary key default gen_random_uuid(),
   name text not null,
   source_url text,
@@ -10,7 +10,7 @@ create table data_sources (
   unique (name, published_month)
 );
 
-create table flagged_batches (
+create table if not exists flagged_batches (
   id uuid primary key default gen_random_uuid(),
   drug_name text not null,
   drug_key text not null,
@@ -26,8 +26,8 @@ create table flagged_batches (
   unique (batch_key, drug_key, source_id)
 );
 
-create index flagged_batch_key_idx on flagged_batches (batch_key);
-create index flagged_drug_trgm_idx on flagged_batches using gin (drug_key gin_trgm_ops);
+create index if not exists flagged_batch_key_idx on flagged_batches (batch_key);
+create index if not exists flagged_drug_trgm_idx on flagged_batches using gin (drug_key gin_trgm_ops);
 
 alter table data_sources enable row level security;
 alter table flagged_batches enable row level security;
