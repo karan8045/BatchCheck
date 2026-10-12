@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSupabaseAdmin, DEMO_DATA_SOURCE } from "@/lib/supabase-server";
+import { getSupabaseAdmin, REAL_CDSCO_DATA_SOURCE } from "@/lib/supabase-server";
 
 export async function GET() {
   try {
@@ -15,14 +15,14 @@ export async function GET() {
       }
     }
 
-    // Fallback to demo source
+    // Fallback to real CDSCO alert source
     return NextResponse.json({
-      sources: [DEMO_DATA_SOURCE],
+      sources: [REAL_CDSCO_DATA_SOURCE],
     });
   } catch (err: any) {
     console.error("GET /api/sources error:", err);
     return NextResponse.json({
-      sources: [DEMO_DATA_SOURCE],
+      sources: [REAL_CDSCO_DATA_SOURCE],
     });
   }
 }

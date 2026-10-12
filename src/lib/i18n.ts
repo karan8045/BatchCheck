@@ -34,7 +34,7 @@ export const DICTIONARY = {
       scanButton: "Scan Medicine (Strip / Syrup / Pack)",
       scanningAction: "Analyzing medicine & packaging...",
       manualEntryLink: "Type details manually",
-      sampleButton: "Try a sample strip (Demo)",
+      sampleButton: "Test real CDSCO alert",
       photoTip: "Take a clear photo of your medicine strip, syrup bottle label, or pack.",
     },
     confirm: {
@@ -126,7 +126,7 @@ export const DICTIONARY = {
       scanButton: "दवा स्कैन करें (स्ट्रिप / सिरप / बॉटल)",
       scanningAction: "दवा और पैकिंग का विश्लेषण हो रहा है...",
       manualEntryLink: "हाथ से विवरण दर्ज करें",
-      sampleButton: "नमूना स्ट्रिप जाँचें (डेमो)",
+      sampleButton: "असली CDSCO अलर्ट नमूना जाँचें",
       photoTip: "दवा की पन्नी, सिरप की बोतल या पैक के लेबल की साफ़ तस्वीर लें।",
     },
     confirm: {

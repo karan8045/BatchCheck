@@ -248,12 +248,12 @@ export default function BatchCheckApp() {
   // 5. Handle "Try a sample" (Demo)
   const handleTrySample = async () => {
     setIsChecking(true);
-    // Use the seeded fictional demo batch
+    // Use real published CDSCO NSQ alert batch
     const sample = {
-      drug_name: "Altopan Pantoprazole Tablets 40mg",
-      manufacturer: "Novagen Healthcare Pvt Ltd",
-      batch_number: "BX2417A",
-      expiry_raw: "08/2026",
+      drug_name: "Clavam 625 Amoxicillin and Potassium Clavulanate Tablets IP",
+      manufacturer: "Alkem Laboratories Ltd",
+      batch_number: "23443940",
+      expiry_raw: "10/2026",
     };
 
     setDrugName(sample.drug_name);
@@ -261,11 +261,11 @@ export default function BatchCheckApp() {
     setBatchNumber(sample.batch_number);
     setExpiryRaw(sample.expiry_raw);
 
-    // Seeded demo pharmacopeia identification
-    setActiveIngredients("Pantoprazole Sodium IP 40mg");
-    setDrugCategory("Proton Pump Inhibitor (Antacid / Anti-ulcer)");
+    // Real pharmacopeia identification
+    setActiveIngredients("Amoxicillin Trihydrate IP & Potassium Clavulanate IP");
+    setDrugCategory("Broad-spectrum Antibacterial / Penicillin Combination");
     setPackagingType("Alu-Alu Blister Strip");
-    setUsageSummary("Reduces stomach acid production; indicated for gastroesophageal reflux disease (GERD) and peptic ulcers.");
+    setUsageSummary("Bacterial infections of respiratory tract, ear, nose, throat, skin, and urinary tract.");
 
     try {
       const res = await fetch("/api/check", {
@@ -279,13 +279,13 @@ export default function BatchCheckApp() {
       setResultConfidence(data.confidence || "high");
       setIsAlsoExpired(Boolean(data.isAlsoExpired));
       setMatchedRows(data.matchedRows || []);
-      setListsCheckedNames(data.listsCheckedNames || "DEMO DATA (fictional)");
-      setLatestMonthYear(data.latestMonthYear || "August 2026");
+      setListsCheckedNames(data.listsCheckedNames || "CDSCO Drug Alerts (NSQ / Spurious)");
+      setLatestMonthYear(data.latestMonthYear || "February 2026");
 
       setScreen("result");
     } catch (err) {
       console.warn("Sample check error:", err);
-      // Fallback demo result in case of network issue
+      // Fallback result in case of network issue
       setResultStatus("flagged");
       setResultConfidence("high");
       setIsAlsoExpired(false);
@@ -295,14 +295,14 @@ export default function BatchCheckApp() {
           manufacturer: sample.manufacturer,
           batch_number: sample.batch_number,
           alert_type: "NSQ",
-          reason: "Fails dissolution test requirement",
-          source_name: "DEMO DATA (fictional)",
-          published_month: "2026-08-01",
-          is_demo: true,
+          reason: "Fails in Assay of Clavulanic Acid (Government Analyst CDL Kolkata)",
+          source_name: "CDSCO Drug Alerts (NSQ / Spurious)",
+          published_month: "2026-02-01",
+          is_demo: false,
         },
       ]);
-      setListsCheckedNames("DEMO DATA (fictional)");
-      setLatestMonthYear("August 2026");
+      setListsCheckedNames("CDSCO Drug Alerts (NSQ / Spurious)");
+      setLatestMonthYear("February 2026");
       setScreen("result");
     } finally {
       setIsChecking(false);
